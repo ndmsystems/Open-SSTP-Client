@@ -79,7 +79,7 @@ internal class PppLcpFrame : ControlFrame() {
                             auth = when(bytes.short) {
                                 AuthProtocol.PAP.value -> AuthProtocol.PAP
                                 AuthProtocol.CHAP.value -> AuthProtocol.CHAP
-                                else -> null
+                                else -> AuthProtocol.OTHER
                             }
                             repeat(optLength - 4) { bytes.get() } // discard
                         }
