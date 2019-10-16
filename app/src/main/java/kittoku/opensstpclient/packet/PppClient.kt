@@ -30,6 +30,7 @@ internal class PppClient(lowerBridge: LayerBridge, higherBridge: LayerBridge,
             PppProtocol.IP.value -> PppProtocol.IP
             PppProtocol.LCP.value -> PppProtocol.LCP
             PppProtocol.PAP.value -> PppProtocol.PAP
+            PppProtocol.CHAP.value -> PppProtocol.CHAP
             PppProtocol.IPCP.value -> PppProtocol.IPCP
             else -> null
             }
@@ -75,7 +76,6 @@ internal class PppClient(lowerBridge: LayerBridge, higherBridge: LayerBridge,
         requestLcpFrame.code = PppLcpFrame.Code.CONFIGURE_REQUEST
         requestLcpFrame.id = globalIdentifier
         requestLcpFrame.mru = REQUEST_MRU_SIZE
-        requestLcpFrame.auth = PppLcpFrame.AuthProtocol.PAP
         sendControlFrame(requestLcpFrame)
 
         var isClientAcknowledged = false
@@ -128,6 +128,11 @@ internal class PppClient(lowerBridge: LayerBridge, higherBridge: LayerBridge,
                                 replyLcpFrame.code = PppLcpFrame.Code.CONFIGURE_REJECT
                                 replyLcpFrame.id = receivedLcpFrame.id
                                 replyLcpFrame.unknownOption = receivedLcpFrame.unknownOption
+                                sendControlFrame(replyLcpFrame)
+                            } else if (receivedLcpFrame.auth == PppLcpFrame.AuthProtocol.CHAP) {
+                                replyLcpFrame.code = PppLcpFrame.Code.CONFIGURE_NAK
+                                replyLcpFrame.id = receivedLcpFrame.id
+                                replyLcpFrame.auth = PppLcpFrame.AuthProtocol.PAP
                                 sendControlFrame(replyLcpFrame)
                             } else {
                                 replyLcpFrame.code = PppLcpFrame.Code.CONFIGURE_ACK

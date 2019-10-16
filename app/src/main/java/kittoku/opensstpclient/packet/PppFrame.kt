@@ -13,6 +13,7 @@ internal const val PPP_HEADER = 0xFF03.toShort()
 internal enum class PppProtocol(val value: Short) {
     LCP(0xC021.toShort()),
     PAP(0xC023.toShort()),
+    CHAP(0xC223.toShort()),
     IPCP(0x8021.toShort()),
     IP(0x0021.toShort())
 }
@@ -36,6 +37,7 @@ internal class PppLcpFrame : ControlFrame() {
 
     internal enum class AuthProtocol(val value: Short) {
         PAP(0xC023.toShort()),
+        CHAP(0xC223.toShort()),
         OTHER(0)
     }
 
@@ -74,7 +76,11 @@ internal class PppLcpFrame : ControlFrame() {
                     when (option) {
                         Option.MRU.value -> mru = bytes.short
                         Option.AUTH.value -> {
-                            auth = if (bytes.short == AuthProtocol.PAP.value) AuthProtocol.PAP else AuthProtocol.OTHER
+                            auth = when(bytes.short) {
+                                AuthProtocol.PAP.value -> AuthProtocol.PAP
+                                AuthProtocol.CHAP.value -> AuthProtocol.CHAP
+                                else -> null
+                            }
                             repeat(optLength - 4) { bytes.get() } // discard
                         }
                         else -> {
